@@ -166,7 +166,7 @@ class ShareFileView(CDriveBaseView):
 
         return Response(status=201)
 
-class RegisterUserView(CDriveBaseView):
+class RegisterUserView(APIView):
     parser_class = (JSONParser,)
 
     @csrf_exempt
@@ -177,3 +177,28 @@ class RegisterUserView(CDriveBaseView):
             return Response(status=201)
         else:
             return Response(status=400)
+
+class ClientIdView(APIView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def get(self, request, format=None):
+        data = {'client_id': settings.COLUMBUS_CLIENT_ID}
+        return Response(data, status=status.HTTP_200_OK)
+
+class AuthenticationTokenView(APIView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request, format=None):
+        code = request.data['code']
+        redirect_uri = request.data['redirect_uri']
+        data = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirect_uri,
+            'client_id': settings.COLUMBUS_CLIENT_ID,
+            'client_secret': settings.COLUMBUS_CLIENT_SECRET
+        }
+        response = requests.post(url='http://authentication/o/token/', data=data)
+        return Response(response.json, status=response.status_code)

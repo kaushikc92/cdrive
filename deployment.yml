@@ -25,3 +25,7 @@ spec:
               value: ""
             - name: AWS_STORAGE_BUCKET_NAME
               value: ""
+            - name: COLUMBUS_CLIENT_ID
+              value: ""
+            - name: COLUMBUS_CLIENT_SECRET
+              value: ""

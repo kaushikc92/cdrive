@@ -1,7 +1,7 @@
 kind: Service
 apiVersion: v1
 metadata:
-  name: cdrive-service
+  name: cdrive
 spec:
   selector:
     name: cdrive

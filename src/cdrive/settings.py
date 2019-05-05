@@ -128,8 +128,8 @@ AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY'] 
 AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
 
-#COLUMBUS_CLIENT_ID = ''
-#COLUMBUS_CLIENT_SECRET = ''
+COLUMBUS_CLIENT_ID = os.environ['COLUMBUS_CLIENT_ID']
+COLUMBUS_CLIENT_SECRET = os.environ['COLUMBUS_CLIENT_SECRET']
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/

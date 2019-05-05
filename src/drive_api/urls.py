@@ -12,5 +12,7 @@ urlpatterns = [
     path('shared-files-list/', views.SharedFilesListView.as_view()),
     path('download-shared-file/', views.DownloadSharedFileView.as_view()),
     path('register-user/', views.RegisterUserView.as_view()),
+    path('client-id/', views.ClientIdView.as_view()),
+    path('authentication-token/', views.AuthenticationTokenView.as_view()),
 ]
 
