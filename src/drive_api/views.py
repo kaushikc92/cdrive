@@ -13,7 +13,6 @@ from botocore.client import Config
 
 from .models import CDriveFile, CDriveUser
 from .serializers import CDriveFileSerializer, CDriveUserSerializer
-import pdb
 
 # Create your views here.
 
@@ -201,7 +200,6 @@ class AuthenticationTokenView(APIView):
             'client_id': settings.COLUMBUS_CLIENT_ID,
             'client_secret': settings.COLUMBUS_CLIENT_SECRET
         }
-        pdb.set_trace()
         #response = requests.post(url='http://a250afd7c6eba11e98ea412ac368fc7a-312971903.us-east-1.elb.amazonaws.com/o/token/', data=data)
         response = requests.post(url='http://authentication/o/token/', data=data)
         return Response(response.json(), status=response.status_code)
