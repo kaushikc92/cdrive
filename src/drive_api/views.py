@@ -22,7 +22,7 @@ class CDriveBaseView(APIView):
         auth_header = request.META['HTTP_AUTHORIZATION']
         token = auth_header.split()[1] 
         response = requests.post(
-            url='http://0.0.0.0:8000/o/introspect/', 
+            url='http://authentication/o/introspect/',
             data={'token': token}, 
             headers={'Authorization': auth_header}
         )
