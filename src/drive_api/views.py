@@ -72,7 +72,7 @@ class DownloadUrlView(CDriveBaseView):
         file_name = request.query_params['file_name']
         client = boto3.client(
             's3', 
-            region_name = 'us-east-2',
+            region_name = 'us-east-1',
             config=Config(signature_version='s3v4'),
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
