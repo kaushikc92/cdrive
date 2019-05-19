@@ -1,12 +1,16 @@
 from django.db import models
+from django.conf import settings
 
 # Create your models here.
-def user_directory_path(instance, filename):
-    return '{0}/{1}'.format(instance.file_owner, filename)
+def file_path(instance, filename):
+    if settings.DEBUG_LOCAL:
+        return 'localhost/{0}/{1}'.format(instance.file_owner, filename)
+    else:
+        return '{0}/{1}'.format(instance.file_owner, filename)
 
 # Create your models here.
 class CDriveFile(models.Model):
-    cdrive_file = models.FileField(upload_to=user_directory_path, blank=False, null=False)
+    cdrive_file = models.FileField(upload_to=file_path, blank=False, null=False)
     file_name = models.CharField(max_length=200)
     file_owner = models.CharField(max_length=200)
 

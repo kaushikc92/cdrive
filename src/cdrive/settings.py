@@ -131,6 +131,7 @@ AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
 COLUMBUS_CLIENT_ID = os.environ['COLUMBUS_CLIENT_ID']
 COLUMBUS_CLIENT_SECRET = os.environ['COLUMBUS_CLIENT_SECRET']
 
+DEBUG_LOCAL = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 

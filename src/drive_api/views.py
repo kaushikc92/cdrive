@@ -21,8 +21,12 @@ class CDriveBaseView(APIView):
     def get_name(request):
         auth_header = request.META['HTTP_AUTHORIZATION']
         token = auth_header.split()[1] 
+        if settings.DEBUG_LOCAL:
+            url = 'http://0.0.0.0:8000/o/introspect/'
+        else:
+            url = 'http://authentication/o/introspect/'
         response = requests.post(
-            url='http://authentication/o/introspect/',
+            url=url,
             data={'token': token}, 
             headers={'Authorization': auth_header}
         )
@@ -77,11 +81,15 @@ class DownloadUrlView(CDriveBaseView):
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
+        if settings.DEBUG_LOCAL:
+            object_key = 'localhost' + username + '/' + file_name
+        else:
+            object_key = username + '/' + file_name
         url = client.generate_presigned_url(
             ClientMethod='get_object',
             Params={
                 'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-                'Key': username + '/' + file_name
+                'Key': object_key
             },
             ExpiresIn=3600
         )
@@ -140,11 +148,15 @@ class DownloadSharedFileView(CDriveBaseView):
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
+        if settings.DEBUG_LOCAL:
+            object_key = 'localhost' + file_owner + '/' + file_name
+        else:
+            object_key = file_owner + '/' + file_name
         url = client.generate_presigned_url(
             ClientMethod='get_object',
             Params={
                 'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-                'Key': file_owner + '/' + file_name
+                'Key': object_key
             },
             ExpiresIn=3600
         )
@@ -200,6 +212,9 @@ class AuthenticationTokenView(APIView):
             'client_id': settings.COLUMBUS_CLIENT_ID,
             'client_secret': settings.COLUMBUS_CLIENT_SECRET
         }
-        #response = requests.post(url='http://a250afd7c6eba11e98ea412ac368fc7a-312971903.us-east-1.elb.amazonaws.com/o/token/', data=data)
-        response = requests.post(url='http://authentication/o/token/', data=data)
+        if settings.DEBUG_LOCAL:
+            response = requests.post(url='http://0.0.0.0:8000/o/token/', data=data)
+        else:
+            response = requests.post(url='http://authentication/o/token/', data=data)
+
         return Response(response.json(), status=response.status_code)
