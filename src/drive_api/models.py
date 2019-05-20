@@ -13,6 +13,7 @@ class CDriveFile(models.Model):
     cdrive_file = models.FileField(upload_to=file_path, blank=False, null=False)
     file_name = models.CharField(max_length=200)
     file_owner = models.CharField(max_length=200)
+    file_size = models.IntegerField()
 
 class CDriveUser(models.Model):
     username = models.CharField(max_length=50, primary_key=True)

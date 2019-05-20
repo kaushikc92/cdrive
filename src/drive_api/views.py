@@ -42,7 +42,8 @@ class FileUploadView(CDriveBaseView):
         cDriveFile = CDriveFile(
             cdrive_file = request.data['file'],
             file_name = request.data['file'].name,
-            file_owner = username 
+            file_owner = username,
+            file_size = request.data['file'].size
         )
         cDriveFile.save()
         return Response({'file_name':request.data['file'].name}, status=status.HTTP_201_CREATED)
@@ -82,7 +83,7 @@ class DownloadUrlView(CDriveBaseView):
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
         if settings.DEBUG_LOCAL:
-            object_key = 'localhost' + username + '/' + file_name
+            object_key = 'localhost' + '/' + username + '/' + file_name
         else:
             object_key = username + '/' + file_name
         url = client.generate_presigned_url(
@@ -143,13 +144,13 @@ class DownloadSharedFileView(CDriveBaseView):
 
         client = boto3.client(
             's3', 
-            region_name = 'us-east-2',
+            region_name = 'us-east-1',
             config=Config(signature_version='s3v4'),
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
             aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
         )
         if settings.DEBUG_LOCAL:
-            object_key = 'localhost' + file_owner + '/' + file_name
+            object_key = 'localhost' + '/' + file_owner + '/' + file_name
         else:
             object_key = file_owner + '/' + file_name
         url = client.generate_presigned_url(
