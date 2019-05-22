@@ -22,9 +22,9 @@ class CDriveBaseView(APIView):
         auth_header = request.META['HTTP_AUTHORIZATION']
         token = auth_header.split()[1] 
         if settings.DEBUG_LOCAL:
-            url = 'http://0.0.0.0:8000/o/introspect/'
+            url = 'http://0.0.0.0:8000/authentication/o/introspect/'
         else:
-            url = 'http://authentication/o/introspect/'
+            url = 'http://authentication/authentication/o/introspect/'
         response = requests.post(
             url=url,
             data={'token': token}, 
@@ -112,7 +112,10 @@ class UserDetailsView(CDriveBaseView):
     @csrf_exempt
     def get(self, request, format=None):
         username = UserDetailsView.get_name(request) 
-        user_data = CDriveUser.objects.filter(username=username)[0]
+        query_set = CDriveUser.objects.filter(username=username)
+        if not query_set:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        user_data = query_set[0]
         serializer = CDriveUserSerializer(user_data)
         return Response(serializer.data, status=200)
 
@@ -214,8 +217,26 @@ class AuthenticationTokenView(APIView):
             'client_secret': settings.COLUMBUS_CLIENT_SECRET
         }
         if settings.DEBUG_LOCAL:
-            response = requests.post(url='http://0.0.0.0:8000/o/token/', data=data)
+            response = requests.post(url='http://0.0.0.0:8000/authentication/o/token/', data=data)
         else:
-            response = requests.post(url='http://authentication/o/token/', data=data)
+            response = requests.post(url='http://authentication/authentication/o/token/', data=data)
 
         return Response(response.json(), status=response.status_code)
+
+class LogoutView(APIView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request):
+        auth_header = request.META['HTTP_AUTHORIZATION']
+        token = auth_header.split()[1] 
+        data = {
+            'token': token,
+            'client_id': settings.COLUMBUS_CLIENT_ID,
+            'client_secret': settings.COLUMBUS_CLIENT_SECRET
+        }
+        if settings.DEBUG_LOCAL:
+            response = requests.post(url='http://0.0.0.0:8000/authentication/o/revoke_token/', data=data)
+        else:
+            response = requests.post(url='http://authentication/authentication/o/revoke_token/', data=data)
+        return Response(status=response.status_code)

@@ -24,6 +24,7 @@ SECRET_KEY = '*^!qhzqbr%9)&io(=g0yi)y-#bt^5yy$1a!k(%md3mt(94_6sf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+DEBUG_LOCAL = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -131,8 +132,7 @@ AWS_STORAGE_BUCKET_NAME = os.environ['AWS_STORAGE_BUCKET_NAME']
 COLUMBUS_CLIENT_ID = os.environ['COLUMBUS_CLIENT_ID']
 COLUMBUS_CLIENT_SECRET = os.environ['COLUMBUS_CLIENT_SECRET']
 
-DEBUG_LOCAL = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = '/api/v1/cdrive/static/'
