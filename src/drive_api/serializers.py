@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CDriveFile, CDriveUser
+from .models import CDriveFile, CDriveUser, CDriveApplication
 
 class CDriveFileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -9,4 +9,9 @@ class CDriveFileSerializer(serializers.ModelSerializer):
 class CDriveUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CDriveUser
-        exclude = ('shared_files',)
+        fields = ('username', 'email', 'firstname', 'lastname')
+
+class CDriveApplicationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CDriveApplication
+        fields = '__all__'

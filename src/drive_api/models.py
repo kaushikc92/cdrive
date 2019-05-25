@@ -15,9 +15,15 @@ class CDriveFile(models.Model):
     file_owner = models.CharField(max_length=200)
     file_size = models.IntegerField()
 
+class CDriveApplication(models.Model):
+    app_name = models.CharField(max_length=200)
+    app_url = models.URLField(max_length=200)
+
 class CDriveUser(models.Model):
     username = models.CharField(max_length=50, primary_key=True)
     email = models.EmailField(max_length=70)
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     shared_files = models.ManyToManyField(CDriveFile)
+    installed_apps = models.ManyToManyField(CDriveApplication)
+

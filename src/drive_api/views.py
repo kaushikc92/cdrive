@@ -11,8 +11,8 @@ import requests
 import boto3
 from botocore.client import Config
 
-from .models import CDriveFile, CDriveUser
-from .serializers import CDriveFileSerializer, CDriveUserSerializer
+from .models import CDriveFile, CDriveUser, CDriveApplication
+from .serializers import CDriveFileSerializer, CDriveUserSerializer, CDriveApplicationSerializer
 
 # Create your views here.
 
@@ -181,6 +181,28 @@ class ShareFileView(CDriveBaseView):
             query[0].shared_files.add(cDriveFile)
 
         return Response(status=201)
+
+class InstallApplicationView(CDriveBaseView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request):
+        username = InstallApplicationView.get_name(request)
+        app_docker_link = request.data['app_docker_link']
+        app_name = app_docker_link.split('/', 1)[1]
+        cDriveApplication = CDriveApplication.objects.filter(app_name=app_name)[0]
+        cDriveUser = CDriveUser.objects.filter(username=username)[0]
+        cDriveUser.installed_apps.add(cDriveApplication)
+
+class ApplicationsListView(CDriveBaseView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def get(self, request):
+        username = ApplicationsView.get_name(request)
+        queryset = CDriveUser.objects.filter(username=username)[0].installed_apps.all()
+        serializer = CDriveApplicationSerializer(queryset, many=True)
+        return Response(serializer.data, status=200)
 
 class RegisterUserView(APIView):
     parser_class = (JSONParser,)
