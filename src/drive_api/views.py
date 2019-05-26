@@ -189,17 +189,19 @@ class InstallApplicationView(CDriveBaseView):
     def post(self, request):
         username = InstallApplicationView.get_name(request)
         app_docker_link = request.data['app_docker_link']
-        app_name = app_docker_link.split('/', 1)[1]
-        cDriveApplication = CDriveApplication.objects.filter(app_name=app_name)[0]
+        #app_name = app_docker_link.split('/', 1)[1]
+        cDriveApplication = CDriveApplication.objects.filter(app_image_url=app_docker_link)[0]
         cDriveUser = CDriveUser.objects.filter(username=username)[0]
         cDriveUser.installed_apps.add(cDriveApplication)
+
+        return Response(status=status.HTTP_201_CREATED)
 
 class ApplicationsListView(CDriveBaseView):
     parser_class = (JSONParser,)
 
     @csrf_exempt
     def get(self, request):
-        username = ApplicationsView.get_name(request)
+        username = ApplicationsListView.get_name(request)
         queryset = CDriveUser.objects.filter(username=username)[0].installed_apps.all()
         serializer = CDriveApplicationSerializer(queryset, many=True)
         return Response(serializer.data, status=200)
