@@ -18,6 +18,9 @@ spec:
           ports:
             - name: http
               containerPort: 8000
+          volumeMounts:
+            - mountPath: /code/data
+              name: cdrive-data
           env:
             - name: AWS_ACCESS_KEY_ID
               value: ""
@@ -29,3 +32,7 @@ spec:
               value: ""
             - name: COLUMBUS_CLIENT_SECRET
               value: ""
+      volumes:
+        - name: cdrive-data
+          persistentVolumeClaim:
+            claimName: cdrive-pv-claim
