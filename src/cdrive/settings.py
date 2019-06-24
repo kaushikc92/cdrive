@@ -135,4 +135,4 @@ COLUMBUS_CLIENT_SECRET = os.environ['COLUMBUS_CLIENT_SECRET']
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_URL = '/api/v1/cdrive/static/'
+STATIC_URL = '/static/'

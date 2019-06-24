@@ -22,9 +22,9 @@ class CDriveBaseView(APIView):
         auth_header = request.META['HTTP_AUTHORIZATION']
         token = auth_header.split()[1] 
         if settings.DEBUG_LOCAL:
-            url = 'http://0.0.0.0:8000/authentication/o/introspect/'
+            url = 'http://0.0.0.0:8000/o/introspect/'
         else:
-            url = 'http://authentication/authentication/o/introspect/'
+            url = 'http://authentication/o/introspect/'
         response = requests.post(
             url=url,
             data={'token': token}, 
@@ -241,9 +241,9 @@ class AuthenticationTokenView(APIView):
             'client_secret': settings.COLUMBUS_CLIENT_SECRET
         }
         if settings.DEBUG_LOCAL:
-            response = requests.post(url='http://0.0.0.0:8000/authentication/o/token/', data=data)
+            response = requests.post(url='http://0.0.0.0:8000/o/token/', data=data)
         else:
-            response = requests.post(url='http://authentication/authentication/o/token/', data=data)
+            response = requests.post(url='http://authentication/o/token/', data=data)
 
         return Response(response.json(), status=response.status_code)
 
@@ -260,7 +260,7 @@ class LogoutView(APIView):
             'client_secret': settings.COLUMBUS_CLIENT_SECRET
         }
         if settings.DEBUG_LOCAL:
-            response = requests.post(url='http://0.0.0.0:8000/authentication/o/revoke_token/', data=data)
+            response = requests.post(url='http://0.0.0.0:8000/o/revoke_token/', data=data)
         else:
-            response = requests.post(url='http://authentication/authentication/o/revoke_token/', data=data)
+            response = requests.post(url='http://authentication/o/revoke_token/', data=data)
         return Response(status=response.status_code)
