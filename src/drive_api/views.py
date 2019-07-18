@@ -189,12 +189,30 @@ class InstallApplicationView(CDriveBaseView):
     def post(self, request):
         username = InstallApplicationView.get_name(request)
         app_docker_link = request.data['app_docker_link']
-        #app_name = app_docker_link.split('/', 1)[1]
-        cDriveApplication = CDriveApplication.objects.filter(app_image_url=app_docker_link)[0]
+        start_index = app_docker_link.rfind('/')
+        end_index = app_docker_link.rfind(':')
+        if end_index == -1:
+            end_index = len(app_docker_link)
+        app_name = app_docker_link[start_index + 1 : end_index]
+        
+        data = {
+                'imagePath': app_docker_link,
+                'username': username,
+                'appName': app_name
+        }
+        response = requests.post(url='http://app-manager/start-app', data=data)
+        
+        cDriveApplication = CDriveApplication(
+                app_name = app_name,
+                app_url = settings.APPS_ROOT + '/' + username + '/' + app_name,
+                app_image_url = app_docker_link
+        )
+        cDriveApplication.save()
+
         cDriveUser = CDriveUser.objects.filter(username=username)[0]
         cDriveUser.installed_apps.add(cDriveApplication)
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response({'appName': app_name}, status=status.HTTP_201_CREATED)
 
 class ApplicationsListView(CDriveBaseView):
     parser_class = (JSONParser,)

@@ -136,3 +136,5 @@ COLUMBUS_CLIENT_SECRET = os.environ['COLUMBUS_CLIENT_SECRET']
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+APPS_ROOT = 'https://applications.columbusecosystem.com/'
