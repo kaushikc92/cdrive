@@ -19,6 +19,7 @@ class CDriveApplication(models.Model):
     app_name = models.CharField(max_length=200)
     app_url = models.URLField(max_length=200)
     app_image_url = models.CharField(max_length=200)
+    app_owner = models.CharField(max_length=50)
 
 class CDriveUser(models.Model):
     username = models.CharField(max_length=50, primary_key=True)
@@ -26,5 +27,3 @@ class CDriveUser(models.Model):
     firstname = models.CharField(max_length=50)
     lastname = models.CharField(max_length=50)
     shared_files = models.ManyToManyField(CDriveFile)
-    installed_apps = models.ManyToManyField(CDriveApplication)
-

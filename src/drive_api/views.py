@@ -205,14 +205,29 @@ class InstallApplicationView(CDriveBaseView):
         cDriveApplication = CDriveApplication(
                 app_name = app_name,
                 app_url = settings.APPS_ROOT + username + '/' + app_name,
-                app_image_url = app_docker_link
+                app_image_url = app_docker_link,
+                app_owner = username
         )
         cDriveApplication.save()
 
-        cDriveUser = CDriveUser.objects.filter(username=username)[0]
-        cDriveUser.installed_apps.add(cDriveApplication)
-
         return Response({'appName': app_name}, status=status.HTTP_201_CREATED)
+
+class DeleteApplicationView(CDriveBaseView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request):
+        username = DeleteApplicationView.get_name(request)
+        app_name = request.data['app_name']
+        data = {
+                'username': username,
+                'appName': app_name
+        }
+        response = requests.post(url='http://app-manager/stop-app', data=data)
+        response = requests.post(url='http://app-manager/delete-app-storage', data=data)
+        CDriveApplication.objects.filter(app_owner=username, app_name=app_name).delete()
+        
+        return Response(status=201)
 
 class ApplicationsListView(CDriveBaseView):
     parser_class = (JSONParser,)
@@ -220,7 +235,7 @@ class ApplicationsListView(CDriveBaseView):
     @csrf_exempt
     def get(self, request):
         username = ApplicationsListView.get_name(request)
-        queryset = CDriveUser.objects.filter(username=username)[0].installed_apps.all()
+        queryset = CDriveApplication.objects.filter(app_owner=username)
         serializer = CDriveApplicationSerializer(queryset, many=True)
         return Response(serializer.data, status=200)
 

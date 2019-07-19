@@ -35,4 +35,4 @@ spec:
       volumes:
         - name: cdrive-data
           persistentVolumeClaim:
-            claimName: cdrive-pv-claim
+            claimName: cdrive

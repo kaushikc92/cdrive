@@ -17,5 +17,6 @@ urlpatterns = [
     path('logout/', views.LogoutView.as_view()),
     path('install-application/', views.InstallApplicationView.as_view()),
     path('applications-list/', views.ApplicationsListView.as_view()),
+    path('delete-application/', views.DeleteApplicationView.as_view()),
 ]
 
