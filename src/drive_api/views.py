@@ -204,7 +204,7 @@ class InstallApplicationView(CDriveBaseView):
         
         cDriveApplication = CDriveApplication(
                 app_name = app_name,
-                app_url = settings.APPS_ROOT + '/' + username + '/' + app_name,
+                app_url = settings.APPS_ROOT + username + '/' + app_name,
                 app_image_url = app_docker_link
         )
         cDriveApplication.save()

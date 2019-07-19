@@ -137,4 +137,4 @@ COLUMBUS_CLIENT_SECRET = os.environ['COLUMBUS_CLIENT_SECRET']
 
 STATIC_URL = '/static/'
 
-APPS_ROOT = 'https://applications.columbusecosystem.com/'
+APPS_ROOT = 'https://cdrive.columbusecosystem.com/app/'
