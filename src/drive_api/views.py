@@ -212,6 +212,25 @@ class InstallApplicationView(CDriveBaseView):
 
         return Response({'appName': app_name}, status=status.HTTP_201_CREATED)
 
+class StartApplicationView(CDriveBaseView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request):
+        username = StartApplicationView.get_name(request)
+        app_name = request.data['app_name']
+
+        cDriveApplication = CDriveApplication.objects.filter(app_owner=username, app_name=app_name)[0]
+        
+        data = {
+                'imagePath': cDriveApplication.app_image_url,
+                'username': username,
+                'appName': app_name
+        }
+        response = requests.post(url='http://app-manager/start-app', data=data)
+
+        return Response(status=status.HTTP_201_CREATED)
+
 class DeleteApplicationView(CDriveBaseView):
     parser_class = (JSONParser,)
 
@@ -227,6 +246,21 @@ class DeleteApplicationView(CDriveBaseView):
         response = requests.post(url='http://app-manager/delete-app-storage', data=data)
         CDriveApplication.objects.filter(app_owner=username, app_name=app_name).delete()
         
+        return Response(status=201)
+
+class StopApplicationsView(CDriveBaseView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request):
+        username = StopApplicationsView.get_name(request)
+        apps = CDriveApplication.objects.filter(app_owner=username)
+        for app in apps:
+            data = {
+                    'username': username,
+                    'appName': app.app_name
+            }
+            response = requests.post(url='http://app-manager/stop-app', data=data)
         return Response(status=201)
 
 class ApplicationsListView(CDriveBaseView):
