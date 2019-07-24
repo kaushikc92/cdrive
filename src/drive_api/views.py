@@ -231,6 +231,19 @@ class StartApplicationView(CDriveBaseView):
 
         return Response(status=status.HTTP_201_CREATED)
 
+class AppStatusView(CDriveBaseView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def get(self, request):
+        username = AppStatusView.get_name(request)
+        app_name = request.query_params['app_name']
+
+        response = requests.get(url='http://app-manager/get-app-status/' + username + '/' + app_name + '/')
+        data = response.json()
+
+        return Response({'app_status': data['app_status']})
+
 class DeleteApplicationView(CDriveBaseView):
     parser_class = (JSONParser,)
 
