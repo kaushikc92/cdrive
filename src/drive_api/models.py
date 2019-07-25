@@ -16,10 +16,12 @@ class CDriveFile(models.Model):
     file_size = models.IntegerField()
 
 class CDriveApplication(models.Model):
-    app_name = models.CharField(max_length=200)
-    app_url = models.URLField(max_length=200)
-    app_image_url = models.CharField(max_length=200)
-    app_owner = models.CharField(max_length=50)
+    name = models.CharField(max_length=200)
+    url = models.URLField(max_length=200)
+    image = models.CharField(max_length=200)
+    owner = models.CharField(max_length=50)
+    client_id = models.CharField(max_length=200)
+    client_secret = models.CharField(max_length=300)
 
 class CDriveUser(models.Model):
     username = models.CharField(max_length=50, primary_key=True)

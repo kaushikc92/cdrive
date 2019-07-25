@@ -14,4 +14,4 @@ class CDriveUserSerializer(serializers.ModelSerializer):
 class CDriveApplicationSerializer(serializers.ModelSerializer):
     class Meta:
         model = CDriveApplication
-        fields = '__all__'
+        fields = ('name', 'url')

@@ -194,19 +194,34 @@ class InstallApplicationView(CDriveBaseView):
         if end_index == -1:
             end_index = len(app_docker_link)
         app_name = app_docker_link[start_index + 1 : end_index]
+
+        data = {
+                'app_name': app_name,
+                'redirect_url': settings.APPS_ROOT + username + '/' + app_name
+        }
+
+        response = requests.post(url='http://authentication/register-app/', data=data)
+
+        data = response.json()
+        client_id = data['clientId']
+        client_secret = data['clientSecret']
         
         data = {
                 'imagePath': app_docker_link,
                 'username': username,
-                'appName': app_name
+                'appName': app_name,
+                'clientId': client_id,
+                'clientSecret': client_secret
         }
         response = requests.post(url='http://app-manager/start-app', data=data)
         
         cDriveApplication = CDriveApplication(
-                app_name = app_name,
-                app_url = settings.APPS_ROOT + username + '/' + app_name,
-                app_image_url = app_docker_link,
-                app_owner = username
+                name = app_name,
+                url = settings.APPS_ROOT + username + '/' + app_name,
+                image = app_docker_link,
+                owner = username,
+                client_id = client_id,
+                client_secret = client_secret
         )
         cDriveApplication.save()
 
@@ -220,12 +235,14 @@ class StartApplicationView(CDriveBaseView):
         username = StartApplicationView.get_name(request)
         app_name = request.data['app_name']
 
-        cDriveApplication = CDriveApplication.objects.filter(app_owner=username, app_name=app_name)[0]
+        cDriveApplication = CDriveApplication.objects.filter(owner=username, name=app_name)[0]
         
         data = {
-                'imagePath': cDriveApplication.app_image_url,
+                'imagePath': cDriveApplication.image,
                 'username': username,
-                'appName': app_name
+                'appName': app_name,
+                'clientId': cDriveApplication.client_id,
+                'clientSecret': cDriveApplication.client_secret
         }
         response = requests.post(url='http://app-manager/start-app', data=data)
 
@@ -242,7 +259,7 @@ class AppStatusView(CDriveBaseView):
         response = requests.get(url='http://app-manager/get-app-status/' + username + '/' + app_name + '/')
         data = response.json()
 
-        return Response({'app_status': data['app_status']})
+        return Response({'appStatus': data['appStatus']})
 
 class DeleteApplicationView(CDriveBaseView):
     parser_class = (JSONParser,)
@@ -257,7 +274,7 @@ class DeleteApplicationView(CDriveBaseView):
         }
         response = requests.post(url='http://app-manager/stop-app', data=data)
         response = requests.post(url='http://app-manager/delete-app-storage', data=data)
-        CDriveApplication.objects.filter(app_owner=username, app_name=app_name).delete()
+        CDriveApplication.objects.filter(owner=username, name=app_name).delete()
         
         return Response(status=201)
 
@@ -267,11 +284,11 @@ class StopApplicationsView(CDriveBaseView):
     @csrf_exempt
     def post(self, request):
         username = StopApplicationsView.get_name(request)
-        apps = CDriveApplication.objects.filter(app_owner=username)
+        apps = CDriveApplication.objects.filter(owner=username)
         for app in apps:
             data = {
                     'username': username,
-                    'appName': app.app_name
+                    'appName': app.name
             }
             response = requests.post(url='http://app-manager/stop-app', data=data)
         return Response(status=201)
@@ -282,7 +299,7 @@ class ApplicationsListView(CDriveBaseView):
     @csrf_exempt
     def get(self, request):
         username = ApplicationsListView.get_name(request)
-        queryset = CDriveApplication.objects.filter(app_owner=username)
+        queryset = CDriveApplication.objects.filter(owner=username)
         serializer = CDriveApplicationSerializer(queryset, many=True)
         return Response(serializer.data, status=200)
 
