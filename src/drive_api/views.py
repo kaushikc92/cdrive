@@ -197,7 +197,7 @@ class InstallApplicationView(CDriveBaseView):
 
         data = {
                 'app_name': app_name,
-                'redirect_url': settings.APPS_ROOT + username + '/' + app_name
+                'redirect_url': settings.APPS_ROOT + username + '/' + app_name + '/'
         }
 
         response = requests.post(url='http://authentication/register-app/', data=data)
@@ -217,7 +217,7 @@ class InstallApplicationView(CDriveBaseView):
         
         cDriveApplication = CDriveApplication(
                 name = app_name,
-                url = settings.APPS_ROOT + username + '/' + app_name,
+                url = settings.APPS_ROOT + username + '/' + app_name + '/',
                 image = app_docker_link,
                 owner = username,
                 client_id = client_id,
