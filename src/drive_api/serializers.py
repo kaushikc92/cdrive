@@ -1,17 +1,12 @@
 from rest_framework import serializers
-from .models import CDriveFile, CDriveUser, CDriveApplication
+from .models import CDriveFile
 
 class CDriveFileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CDriveFile
-        fields = ('file_name', 'file_owner', 'file_size')
+        fields = ('name', 'owner', 'size')
 
-class CDriveUserSerializer(serializers.ModelSerializer):
+class CDriveFolderSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CDriveUser
-        fields = ('username', 'email', 'firstname', 'lastname')
-
-class CDriveApplicationSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CDriveApplication
-        fields = ('name', 'url')
+        model = CDriveFolder
+        fields = ('name', 'owner')

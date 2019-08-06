@@ -2,24 +2,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('upload/', views.FileUploadView.as_view()),
-    path('list/', views.ListFilesView.as_view()),
-    path('download/', views.DownloadUrlView.as_view()),
-    path('file-content/', views.FileContentView.as_view()),
-    path('delete/', views.DeleteFileView.as_view()),
-    path('user-details/', views.UserDetailsView.as_view()),
-    path('share-file/', views.ShareFileView.as_view()),
-    path('shared-files-list/', views.SharedFilesListView.as_view()),
-    path('download-shared-file/', views.DownloadSharedFileView.as_view()),
-    path('register-user/', views.RegisterUserView.as_view()),
-    path('client-id/', views.ClientIdView.as_view()),
-    path('authentication-token/', views.AuthenticationTokenView.as_view()),
-    path('logout/', views.LogoutView.as_view()),
-    path('install-application/', views.InstallApplicationView.as_view()),
-    path('start-application/', views.StartApplicationView.as_view()),
-    path('app-status/', views.AppStatusView.as_view()),
-    path('stop-applications/', views.StopApplicationsView.as_view()),
-    path('applications-list/', views.ApplicationsListView.as_view()),
-    path('delete-application/', views.DeleteApplicationView.as_view()),
+    path('upload/', views.UploadView.as_view()),
+    path('initiate-chunked-upload/', views.InitiateChunkedUpload.as_view()),
+    path('upload-chunk/', views.UploadChunk.as_view()),
+    path('complete-chunked-upload/', views.CompleteChunkedUpload.as_view()),
+    path('list/', views.ListView.as_view()),
+    path('delete/', views.DeleteView.as_view()),
+    path('download/', views.DownloadView.as_view()),
+    path('share/', views.ShareView.as_view()),
 ]
 

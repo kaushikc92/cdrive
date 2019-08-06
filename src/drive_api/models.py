@@ -1,31 +1,36 @@
 from django.db import models
 from django.conf import settings
+from user_mgmt.models import CDriveUser
+from apps_api.models import CDriveApplication
 
-# Create your models here.
 def file_path(instance, filename):
-    if settings.DEBUG_LOCAL:
-        return 'localhost/{0}/{1}'.format(instance.file_owner, filename)
-    else:
-        return '{0}/{1}'.format(instance.file_owner, filename)
+    folder = instance.parent
+    path = filename
+    while folder is not None:
+        path = folder.name + '/' + path
+        folder = folder.parent
+    return path
 
-# Create your models here.
-class CDriveFile(models.Model):
-    cdrive_file = models.FileField(upload_to=file_path, blank=False, null=False)
-    file_name = models.CharField(max_length=200)
-    file_owner = models.CharField(max_length=200)
-    file_size = models.IntegerField()
-
-class CDriveApplication(models.Model):
+class CDriveFolder(models.Model):
     name = models.CharField(max_length=200)
-    url = models.URLField(max_length=200)
-    image = models.CharField(max_length=200)
-    owner = models.CharField(max_length=50)
-    client_id = models.CharField(max_length=200)
-    client_secret = models.CharField(max_length=300)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE, null=True, related_name='%(class)s_parent')
+    owner = models.ForeignKey(CDriveUser, on_delete=models.CASCADE, null=True, related_name='%(class)s_owner' )
+    edit_user = models.ManyToManyField(CDriveUser, related_name='%(class)s_edit_user')
+    view_user = models.ManyToManyField(CDriveUser, related_name='%(class)s_view_user')
+    share_user = models.ManyToManyField(CDriveUser, related_name='%(class)s_share_user')
+    edit_app = models.ManyToManyField(CDriveApplication, related_name='%(class)s_edit_app')
+    view_app = models.ManyToManyField(CDriveApplication, related_name='%(class)s_view_app')
+    share_app = models.ManyToManyField(CDriveApplication, related_name='%(class)s_share_app')
 
-class CDriveUser(models.Model):
-    username = models.CharField(max_length=50, primary_key=True)
-    email = models.EmailField(max_length=70)
-    firstname = models.CharField(max_length=50)
-    lastname = models.CharField(max_length=50)
-    shared_files = models.ManyToManyField(CDriveFile)
+class CDriveFile(models.Model):
+    name = models.CharField(max_length=200)
+    parent = models.ForeignKey('CDriveFolder', on_delete=models.CASCADE, related_name='%(class)s_parent') 
+    cdrive_file = models.FileField(upload_to=file_path, blank=False, null=False)
+    size = models.IntegerField()
+    owner = models.ForeignKey(CDriveUser, on_delete=models.CASCADE, related_name='%(class)s_owner' )
+    edit_user = models.ManyToManyField(CDriveUser, related_name='%(class)s_edit_user')
+    view_user = models.ManyToManyField(CDriveUser, related_name='%(class)s_view_user')
+    share_user = models.ManyToManyField(CDriveUser, related_name='%(class)s_share_user')
+    edit_app = models.ManyToManyField(CDriveApplication, related_name='%(class)s_edit_app')
+    view_app = models.ManyToManyField(CDriveApplication, related_name='%(class)s_view_app')
+    share_app = models.ManyToManyField(CDriveApplication, related_name='%(class)s_share_app')

@@ -24,7 +24,6 @@ SECRET_KEY = '*^!qhzqbr%9)&io(=g0yi)y-#bt^5yy$1a!k(%md3mt(94_6sf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-DEBUG_LOCAL = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -39,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drive_api',
+    'apps_api',
+    'user_mgmt',
     'corsheaders',
     'rest_framework',
     'storages',
@@ -108,6 +109,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/
