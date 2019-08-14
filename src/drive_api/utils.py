@@ -1,4 +1,6 @@
 from .models import CDriveFolder, CDriveFile
+from apps_api.models import CDriveApplication
+from django.conf import settings
 
 def get_object_by_path(path):
     tokens = path.split('/')
@@ -12,25 +14,39 @@ def get_object_by_path(path):
     return parent
 
 def initialize_user_drive(cDriveUser):
-    query = CDriveFolder.objects.filter(name='Home', parent=None, owner=None)
-    home_folder = None
-    if query.exists():
-        home_folder = query[0]
-    else:
-        home_folder = CDriveFolder(
-            name = 'Home',
-            parent = None,
-            owner = None
-        )
-        home_folder.save()
-        home_folder = CDriveFolder.objects.filter(name='Home', parent=None, owner=None)[0]
-
+    home_folder = CDriveFolder.objects.filter(name='Home', parent=None, owner=None)[0]
     cDriveFolder = CDriveFolder(
         name = cDriveUser.username,
         parent = home_folder,
         owner = cDriveUser
     )
     cDriveFolder.save()
-    cDriveFolder.view_user.add(cDriveUser)
-    cDriveFolder.edit_user.add(cDriveUser)
-    cDriveFolder.share_user.add(cDriveUser)
+    cDriveApp = CDriveApplication(
+        name = 'cdrive',
+        client_id = settings.COLUMBUS_CLIENT_ID,
+        client_secret = settings.COLUMBUS_CLIENT_SECRET,
+        owner = cDriveUser
+    )
+    cDriveApp.save()
+
+def check_permission(cDriveObject, cDriveUser, cDriveApp, permission):
+    if cDriveUser is None or cDriveApp is None or cDriveObject is None:
+        return False
+    elif cDriveObject.owner == cDriveUser and cDriveApp.name == 'cdrive':
+        return True
+    elif cDriveObject.__class__.__name__ == CDriveFolder:
+        return FolderPermission.objects.filter(
+            cdrive_folder = cDriveObject,
+            user = cDriveUser,
+            app = cDriveApp,
+            permission = permission
+        ).exists()
+    else:
+        return FilePermission.objects.filter(
+            cdrive_file = cDriveObject,
+            user = cDriveUser,
+            app = cDriveApp,
+            permission = permission
+        ).exists()
+
+

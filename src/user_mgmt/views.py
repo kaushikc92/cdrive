@@ -12,14 +12,14 @@ from .models import CDriveUser
 from .serializers import CDriveUserSerializer
 
 from drive_api.utils import initialize_user_drive
-from .utils import get_user
+from .utils import introspect_token
 
 class UserDetailsView(APIView):
     parser_class = (JSONParser,)
 
     @csrf_exempt
     def get(self, request, format=None):
-        user = get_user(request)
+        user, app = introspect_token(request)
         if user is None:
             return Response(status=status.HTTP_400_BAD_REQUEST)
         else :

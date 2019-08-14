@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import CDriveFile
+from .models import CDriveFile, CDriveFolder
 
 class CDriveFileSerializer(serializers.ModelSerializer):
     class Meta:
