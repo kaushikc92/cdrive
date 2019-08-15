@@ -1,4 +1,4 @@
-from .models import CDriveFolder, CDriveFile
+from .models import CDriveFolder, CDriveFile, FolderPermission, FilePermission
 from apps_api.models import CDriveApplication
 from django.conf import settings
 
@@ -28,13 +28,20 @@ def initialize_user_drive(cDriveUser):
         owner = cDriveUser
     )
     cDriveApp.save()
+    permission = FolderPermission(
+        cdrive_folder = home_folder,
+        user = cDriveUser,
+        app = cDriveApp,
+        permission = 'V'
+    )
+    permission.save()
 
 def check_permission(cDriveObject, cDriveUser, cDriveApp, permission):
     if cDriveUser is None or cDriveApp is None or cDriveObject is None:
         return False
     elif cDriveObject.owner == cDriveUser and cDriveApp.name == 'cdrive':
         return True
-    elif cDriveObject.__class__.__name__ == CDriveFolder:
+    elif cDriveObject.__class__.__name__ == 'CDriveFolder':
         return FolderPermission.objects.filter(
             cdrive_folder = cDriveObject,
             user = cDriveUser,
@@ -48,5 +55,3 @@ def check_permission(cDriveObject, cDriveUser, cDriveApp, permission):
             app = cDriveApp,
             permission = permission
         ).exists()
-
-

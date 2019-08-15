@@ -10,5 +10,5 @@ urlpatterns = [
     path('delete/', views.DeleteView.as_view()),
     path('download/', views.DownloadView.as_view()),
     path('share/', views.ShareView.as_view()),
+    path('create/', views.CreateView.as_view()),
 ]
-

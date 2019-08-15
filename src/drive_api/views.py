@@ -169,6 +169,37 @@ class CompleteChunkedUpload(APIView):
         else :
             return Response(status=status.HTTP_403_FORBIDDEN)
 
+class CreateView(APIView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def post(self, request):
+        cDriveUser, cDriveApp = introspect_token(request)
+
+        path = request.data['path']
+        name = request.data['name']
+
+        parent = get_object_by_path(path)
+
+        if check_permission(parent, cDriveUser, cDriveApp, 'E'):
+            cDriveFolder = CDriveFolder(
+                name = name,
+                owner = cDriveUser,
+                parent = parent
+            )
+            cDriveFolder.save()
+            if cDriveApp.name != 'cdrive':
+                permission = FolderPermission(
+                    cdrive_folder = cDriveFolder,
+                    user = cDriveUser,
+                    app = cDriveApp,
+                    permission = 'E'
+                )
+                permission.save()
+            return Response({'name': name}, status=status.HTTP_201_CREATED)
+        else :
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
 class ListView(APIView):
     parser_class = (JSONParser,)
 
@@ -179,37 +210,41 @@ class ListView(APIView):
         path = request.query_params['path']
         parent = get_object_by_path(path)
 
-        if (check_permission(parent, cDriveUser, cDriveApp, 'E') or
-            check_permission(parent, cDriveUser, cDriveApp, 'V')):
-            data = []
+        data = {}
 
-            folders = CDriveFolder.objects.filter(parent=parent)
-            for f in folders:
-                ser = CDriveFolderSerializer(f).data
-                if check_permission(f, cDriveUser, cDriveApp, 'E'):
-                    ser['permission'] = 'Edit'
-                    ser['type'] = 'Folder'
-                    data.append(ser)
-                elif check_permission(f, cDriveUser, cDriveApp, 'V'):
-                    ser['permission'] = 'View'
-                    ser['type'] = 'Folder'
-                    data.append(ser)
-
-            files = CDriveFile.objects.filter(parent=parent)
-            for f in files:
-                ser = CDriveFileSerializer(f).data
-                if check_permission(f, cDriveUser, cDriveApp, 'E'):
-                    ser['permission'] = 'Edit'
-                    ser['type'] = 'File'
-                    data.append(ser)
-                elif check_permission(f, cDriveUser, cDriveApp, 'V'):
-                    ser['permission'] = 'View'
-                    ser['type'] = 'File'
-                    data.append(ser)
-
-            return Response(data, status=status.HTTP_200_OK)
-        else :
+        if check_permission(parent, cDriveUser, cDriveApp, 'E'):
+            data['permission'] = 'Edit'
+        elif check_permission(parent, cDriveUser, cDriveApp, 'V'):
+            data['permission'] = 'View'
+        else:
             return Response(status=status.HTTP_403_FORBIDDEN)
+
+        data['driveObjects'] = []
+        folders = CDriveFolder.objects.filter(parent=parent)
+        for f in folders:
+            ser = CDriveFolderSerializer(f).data
+            if check_permission(f, cDriveUser, cDriveApp, 'E'):
+                ser['permission'] = 'Edit'
+                ser['type'] = 'Folder'
+                data['driveObjects'].append(ser)
+            elif check_permission(f, cDriveUser, cDriveApp, 'V'):
+                ser['permission'] = 'View'
+                ser['type'] = 'Folder'
+                data['driveObjects'].append(ser)
+
+        files = CDriveFile.objects.filter(parent=parent)
+        for f in files:
+            ser = CDriveFileSerializer(f).data
+            if check_permission(f, cDriveUser, cDriveApp, 'E'):
+                ser['permission'] = 'Edit'
+                ser['type'] = 'File'
+                data['driveObjects'].append(ser)
+            elif check_permission(f, cDriveUser, cDriveApp, 'V'):
+                ser['permission'] = 'View'
+                ser['type'] = 'File'
+                data['driveObjects'].append(ser)
+
+        return Response(data, status=status.HTTP_200_OK)
 
 class DeleteView(APIView):
     parser_class = (JSONParser,)
