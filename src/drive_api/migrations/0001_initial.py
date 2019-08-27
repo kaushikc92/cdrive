@@ -7,7 +7,7 @@ import drive_api.models
 def create_home(apps, schema_editor):
     CDriveFolder = apps.get_model('drive_api', 'CDriveFolder')
     home_folder = CDriveFolder(
-        name = 'Home',
+        name = 'users',
         parent = None,
         owner = None
     )

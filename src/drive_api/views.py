@@ -9,11 +9,11 @@ from rest_framework import status
 import boto3
 from botocore.client import Config
 
-from user_mgmt.utils import introspect_token
+from user_mgmt.utils import introspect_token, get_user, get_app
 
 from .models import CDriveFile, CDriveFolder, FilePermission, FolderPermission
 from .serializers import CDriveFileSerializer, CDriveFolderSerializer
-from .utils import get_object_by_path, check_permission
+from .utils import *
 
 class UploadView(APIView):
     parser_class = (FileUploadParser,)
@@ -34,14 +34,6 @@ class UploadView(APIView):
                 size = request.data['file'].size
             )
             cDriveFile.save()
-            if cDriveApp.name != 'cdrive':
-                permission = FilePermission(
-                    cdrive_file = cDriveFile,
-                    user = cDriveUser,
-                    app = cDriveApp,
-                    permission = 'E'
-                )
-                permission.save()
             return Response({'file_name':request.data['file'].name}, status=status.HTTP_201_CREATED)
         else :
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -157,14 +149,6 @@ class CompleteChunkedUpload(APIView):
                 size = size
             )
             cDriveFile.save()
-            if cDriveApp.name != 'cdrive':
-                permission = FilePermission(
-                    cdrive_file = cDriveFile,
-                    user = cDriveUser,
-                    app = cDriveApp,
-                    permission = 'E'
-                )
-                permission.save()
             return Response({'file_name':file_name}, status=status.HTTP_201_CREATED)
         else :
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -188,14 +172,6 @@ class CreateView(APIView):
                 parent = parent
             )
             cDriveFolder.save()
-            if cDriveApp.name != 'cdrive':
-                permission = FolderPermission(
-                    cdrive_folder = cDriveFolder,
-                    user = cDriveUser,
-                    app = cDriveApp,
-                    permission = 'E'
-                )
-                permission.save()
             return Response({'name': name}, status=status.HTTP_201_CREATED)
         else :
             return Response(status=status.HTTP_403_FORBIDDEN)
@@ -214,11 +190,9 @@ class ListView(APIView):
 
         if check_permission(parent, cDriveUser, cDriveApp, 'E'):
             data['permission'] = 'Edit'
-        elif check_permission(parent, cDriveUser, cDriveApp, 'V'):
+        else: 
             data['permission'] = 'View'
-        else:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-
+        
         data['driveObjects'] = []
         folders = CDriveFolder.objects.filter(parent=parent)
         for f in folders:
@@ -228,6 +202,10 @@ class ListView(APIView):
                 ser['type'] = 'Folder'
                 data['driveObjects'].append(ser)
             elif check_permission(f, cDriveUser, cDriveApp, 'V'):
+                ser['permission'] = 'View'
+                ser['type'] = 'Folder'
+                data['driveObjects'].append(ser)
+            elif check_child_permission(f, cDriveUser, cDriveApp):
                 ser['permission'] = 'View'
                 ser['type'] = 'Folder'
                 data['driveObjects'].append(ser)
@@ -251,43 +229,84 @@ class DeleteView(APIView):
 
     @csrf_exempt
     def delete(self, request):
+        cDriveUser, cDriveApp = introspect_token(request)
+        
         path = request.query_params['path']
         cDriveObject = get_object_by_path(path)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        
+        if check_permission(cDriveObject, cDriveUser, cDriveApp, 'E'):
+            if cDriveObject.__class__.__name__ == 'CDriveFolder':
+                delete_folder(cDriveObject)
+            else :
+                cDriveObject.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else :
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
 class DownloadView(APIView):
     parser_class = (JSONParser,)
 
     @csrf_exempt
     def get(self, request):
+        cDriveUser, cDriveApp = introspect_token(request)
+        
         path = request.query_params['path']
         cDriveObject = get_object_by_path(path)
-        #if cDriveObject.view_user.objects.filter(username=cDriveUser.name).exists():
-        #    client = boto3.client(
-        #        's3', 
-        #        region_name = 'us-east-1',
-        #        config=Config(signature_version='s3v4'),
-        #        aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-        #        aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-        #    )
-        #    url = client.generate_presigned_url(
-        #        ClientMethod='get_object',
-        #        Params={
-        #            'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
-        #            'Key': path
-        #        },
-        #        ExpiresIn=3600
-        #    )
-        #    return Response({'download_url' : url}, status=status.HTTP_200_OK)
-        return Response(status=status.HTTP_403_FORBIDDEN)
+
+        if check_permission(cDriveObject, cDriveUser, cDriveApp, 'V'):
+            client = boto3.client(
+                's3', 
+                region_name = 'us-east-1',
+                config=Config(signature_version='s3v4'),
+                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
+            )
+            url = client.generate_presigned_url(
+                ClientMethod='get_object',
+                Params={
+                    'Bucket': settings.AWS_STORAGE_BUCKET_NAME,
+                    'Key': path
+                },
+                ExpiresIn=300
+            )
+            return Response({'download_url' : url}, status=status.HTTP_200_OK)
+        else :
+            return Response(status=status.HTTP_403_FORBIDDEN)
 
 class ShareView(APIView):
     parser_class = (JSONParser,)
 
     @csrf_exempt
     def post(self, request):
+        cDriveUser, cDriveApp = introspect_token(request)
+
+        if cDriveApp.name != 'cdrive':
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
         path = request.data['path']
+        target_type = request.data['targetType']
+        target_name = request.data['name']
         permission = request.data['permission']
-        target_usernames = request.data['target_users']
         cDriveObject = get_object_by_path(path)
+
+        if cDriveObject is None:
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+        if target_type == 'application':
+            if check_permission(cDriveObject, cDriveUser, cDriveApp, permission):
+                target_app = get_app(target_name, cDriveUser)
+                if target_app is None:
+                    return Response(status=status.HTTP_400_BAD_REQUEST)
+                share_object(cDriveObject, cDriveUser, target_app, permission)
+            else :
+                return Response(status=status.HTTP_403_FORBIDDEN)
+        elif target_type == 'user':
+            if cDriveObject.owner != cDriveUser:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+            target_user = get_user(target_name)
+            if target_user is None: 
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            target_app = get_app('cdrive', target_user)
+            share_object(cDriveObject, target_user, target_app, permission)
+
         return Response(status=status.HTTP_200_OK)
