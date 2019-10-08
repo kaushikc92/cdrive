@@ -9,6 +9,8 @@ from rest_framework import status
 import boto3
 from botocore.client import Config
 
+import csv, io
+
 from user_mgmt.utils import introspect_token, get_user, get_app
 
 from .models import CDriveFile, CDriveFolder, FilePermission, FolderPermission
@@ -270,6 +272,48 @@ class DownloadView(APIView):
                 ExpiresIn=300
             )
             return Response({'download_url' : url}, status=status.HTTP_200_OK)
+        else :
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+class ContentView(APIView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def get(self, request):
+        cDriveUser, cDriveApp = introspect_token(request)
+        
+        path = request.query_params['path']
+        cDriveObject = get_object_by_path(path)
+
+        if check_permission(cDriveObject, cDriveUser, cDriveApp, 'V'):
+            if cDriveObject.__class__.__name__ == 'CDriveFile':
+                content = cDriveObject.cdrive_file.read()
+                return Response(content, status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_403_FORBIDDEN)
+        else :
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
+class JsonContentView(APIView):
+    parser_class = (JSONParser,)
+
+    @csrf_exempt
+    def get(self, request):
+        cDriveUser, cDriveApp = introspect_token(request)
+        
+        path = request.query_params['path']
+        cDriveObject = get_object_by_path(path)
+
+        if check_permission(cDriveObject, cDriveUser, cDriveApp, 'V'):
+            if cDriveObject.__class__.__name__ == 'CDriveFile':
+                data = []
+                csvString = io.StringIO(cDriveObject.cdrive_file.read().decode("utf-8"))
+                csvReader = csv.DictReader(csvString)
+                for row in csvReader:
+                    data.append(row)
+                return Response(data, status=status.HTTP_200_OK)
+            else:
+                return Response(status=status.HTTP_403_FORBIDDEN)
         else :
             return Response(status=status.HTTP_403_FORBIDDEN)
 
